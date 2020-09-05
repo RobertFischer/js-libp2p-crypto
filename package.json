@@ -1,10 +1,17 @@
 {
   "name": "libp2p-crypto",
-  "version": "0.17.7",
+  "version": "0.18.0",
   "description": "Crypto primitives for libp2p",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "leadMaintainer": "Jacob Heun <jacobheun@gmail.com>",
+  "browser": {
+    "./src/aes/ciphers.js": "./src/aes/ciphers-browser.js",
+    "./src/ciphers/aes-gcm.js": "./src/ciphers/aes-gcm.browser.js",
+    "./src/hmac/index.js": "./src/hmac/index-browser.js",
+    "./src/keys/ecdh.js": "./src/keys/ecdh-browser.js",
+    "./src/keys/rsa.js": "./src/keys/rsa-browser.js"
+  },
   "files": [
     "src",
     "dist"
@@ -32,26 +39,26 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "buffer": "^5.5.0",
     "err-code": "^2.0.0",
     "is-typedarray": "^1.0.0",
     "iso-random-stream": "^1.1.0",
     "keypair": "^1.0.1",
-    "multibase": "^0.7.0",
-    "multihashing-async": "^0.8.1",
+    "multibase": "^3.0.0",
+    "multicodec": "^2.0.0",
+    "multihashing-async": "^2.0.1",
     "node-forge": "^0.9.1",
     "pem-jwk": "^2.0.0",
-    "protons": "^1.0.1",
+    "protons": "^2.0.0",
     "secp256k1": "^4.0.0",
-    "ursa-optional": "~0.10.1"
+    "uint8arrays": "^1.1.0",
+    "ursa-optional": "^0.10.1"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.11",
+    "@types/chai": "^4.2.12",
     "@types/chai-string": "^1.4.2",
     "@types/dirty-chai": "^2.0.2",
-    "@types/mocha": "^7.0.1",
-    "@types/sinon": "^9.0.0",
-    "aegir": "^22.0.0",
+    "@types/mocha": "^8.0.1",
+    "aegir": "^25.0.0",
     "benchmark": "^2.1.4",
     "chai": "^4.2.0",
     "chai-string": "^1.5.0",
@@ -78,21 +85,25 @@
     "dryajov <dryajov@gmail.com>",
     "Alan Shaw <alan.shaw@protocol.ai>",
     "Hugo Dias <hugomrdias@gmail.com>",
-    "Yusef Napora <yusef@napora.org>",
     "Cayman <caymannava@gmail.com>",
-    "Victor Bjelkholm <victorbjelkholm@gmail.com>",
+    "Yusef Napora <yusef@napora.org>",
+    "ᴠɪᴄᴛᴏʀ ʙᴊᴇʟᴋʜᴏʟᴍ <victorbjelkholm@gmail.com>",
+    "Alex Potsides <alex@achingbrain.net>",
     "Arve Knudsen <arve.knudsen@gmail.com>",
     "Vasco Santos <vasco.santos@ua.pt>",
     "Jack Kleeman <jackkleeman@gmail.com>",
     "Richard Littauer <richard.littauer@gmail.com>",
     "Richard Schneider <makaretu@gmail.com>",
-    "Alex Potsides <alex@achingbrain.net>",
     "dirkmc <dirkmdev@gmail.com>",
     "Alberto Elias <hi@albertoelias.me>",
     "nikuda <nikuda@gmail.com>",
-    "Tom Swindell <t.swindell@rubyx.co.uk>",
     "Carson Farmer <carson.farmer@gmail.com>",
+<<<<<<< HEAD
     "Joao Santos <jrmsantos15@gmail.com>",
     "Robert Fischer <smokejumperit@gmail.com>"
+=======
+    "Tom Swindell <t.swindell@rubyx.co.uk>",
+    "Joao Santos <jrmsantos15@gmail.com>"
+>>>>>>> upstream
   ]
 }

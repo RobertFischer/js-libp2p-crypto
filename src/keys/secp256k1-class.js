@@ -1,7 +1,11 @@
 'use strict'
 
-const multibase = require('multibase')
 const sha = require('multihashing-async/src/sha')
+const errcode = require('err-code')
+const uint8ArrayEquals = require('uint8arrays/equals')
+const uint8ArrayToString = require('uint8arrays/to-string')
+
+const exporter = require('./exporter')
 
 module.exports = (keysProtobuf, randomBytes, crypto) => {
   crypto = crypto || require('./secp256k1')(randomBytes)
@@ -28,7 +32,7 @@ module.exports = (keysProtobuf, randomBytes, crypto) => {
     }
 
     equals (key) {
-      return this.bytes.equals(key.bytes)
+      return uint8ArrayEquals(this.bytes, key.bytes)
     }
 
     hash () {
@@ -64,7 +68,7 @@ module.exports = (keysProtobuf, randomBytes, crypto) => {
     }
 
     equals (key) {
-      return this.bytes.equals(key.bytes)
+      return uint8ArrayEquals(this.bytes, key.bytes)
     }
 
     hash () {
@@ -78,12 +82,26 @@ module.exports = (keysProtobuf, randomBytes, crypto) => {
      * The public key is a protobuf encoding containing a type and the DER encoding
      * of the PKCS SubjectPublicKeyInfo.
      *
-     * @param {function(Error, id)} callback
-     * @returns {undefined}
+     * @returns {Promise<string>}
      */
     async id () {
       const hash = await this.public.hash()
-      return multibase.encode('base58btc', hash).toString().slice(1)
+      return uint8ArrayToString(hash, 'base58btc')
+    }
+
+    /**
+     * Exports the key into a password protected `format`
+     *
+     * @param {string} password - The password to encrypt the key
+     * @param {string} [format=libp2p-key] - The format in which to export as
+     * @returns {Promise<string>} The encrypted private key
+     */
+    async export (password, format = 'libp2p-key') { // eslint-disable-line require-await
+      if (format === 'libp2p-key') {
+        return exporter.export(this.bytes, password)
+      } else {
+        throw errcode(new Error(`export format '${format}' is not supported`), 'ERR_INVALID_EXPORT_FORMAT')
+      }
     }
   }
 

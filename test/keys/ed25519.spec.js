@@ -1,11 +1,11 @@
 /* eslint-env mocha */
 'use strict'
 
-const { Buffer } = require('buffer')
 const chai = require('chai')
 const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
+const uint8ArrayFromString = require('uint8arrays/from-string')
 
 const crypto = require('../../src')
 const ed25519 = crypto.keys.supportedKeys.ed25519
@@ -85,6 +85,26 @@ describe('ed25519', function () {
     expect(id).to.be.a('string')
   })
 
+  it('should export a password encrypted libp2p-key', async () => {
+    const key = await crypto.keys.generateKeyPair('Ed25519')
+    const encryptedKey = await key.export('my secret')
+    // Import the key
+    const importedKey = await crypto.keys.import(encryptedKey, 'my secret')
+    expect(key.equals(importedKey)).to.equal(true)
+  })
+
+  it('should fail to import libp2p-key with wrong password', async () => {
+    const key = await crypto.keys.generateKeyPair('Ed25519')
+    const encryptedKey = await key.export('my secret', 'libp2p-key')
+    try {
+      await crypto.keys.import(encryptedKey, 'not my secret')
+    } catch (err) {
+      expect(err).to.exist()
+      return
+    }
+    expect.fail('should have thrown')
+  })
+
   describe('key equals', () => {
     it('equals itself', () => {
       expect(
@@ -110,16 +130,16 @@ describe('ed25519', function () {
   })
 
   it('sign and verify', async () => {
-    const data = Buffer.from('hello world')
+    const data = uint8ArrayFromString('hello world')
     const sig = await key.sign(data)
     const valid = await key.public.verify(data, sig)
     expect(valid).to.eql(true)
   })
 
   it('fails to verify for different data', async () => {
-    const data = Buffer.from('hello world')
+    const data = uint8ArrayFromString('hello world')
     const sig = await key.sign(data)
-    const valid = await key.public.verify(Buffer.from('hello'), sig)
+    const valid = await key.public.verify(uint8ArrayFromString('hello'), sig)
     expect(valid).to.be.eql(false)
   })
 
@@ -131,25 +151,35 @@ describe('ed25519', function () {
 
   describe('go interop', () => {
     // @ts-check
-    /**
-     * @type {PrivateKey}
-     */
-    let privateKey
-
-    before(async () => {
-      const key = await crypto.keys.unmarshalPrivateKey(fixtures.verify.privateKey)
-      privateKey = key
-    })
-
     it('verifies with data from go', async () => {
       const key = crypto.keys.unmarshalPublicKey(fixtures.verify.publicKey)
       const ok = await key.verify(fixtures.verify.data, fixtures.verify.signature)
       expect(ok).to.eql(true)
     })
 
+    it('does not include the redundant public key when marshalling privatekey', async () => {
+      const key = await crypto.keys.unmarshalPrivateKey(fixtures.redundantPubKey.privateKey)
+      const bytes = key.marshal()
+      expect(bytes.length).to.equal(64)
+      expect(bytes.slice(32)).to.eql(key.public.marshal())
+    })
+
+    it('verifies with data from go with redundant public key', async () => {
+      const key = crypto.keys.unmarshalPublicKey(fixtures.redundantPubKey.publicKey)
+      const ok = await key.verify(fixtures.redundantPubKey.data, fixtures.redundantPubKey.signature)
+      expect(ok).to.eql(true)
+    })
+
     it('generates the same signature as go', async () => {
-      const sig = await privateKey.sign(fixtures.verify.data)
+      const key = await crypto.keys.unmarshalPrivateKey(fixtures.verify.privateKey)
+      const sig = await key.sign(fixtures.verify.data)
       expect(sig).to.eql(fixtures.verify.signature)
+    })
+
+    it('generates the same signature as go with redundant public key', async () => {
+      const key = await crypto.keys.unmarshalPrivateKey(fixtures.redundantPubKey.privateKey)
+      const sig = await key.sign(fixtures.redundantPubKey.data)
+      expect(sig).to.eql(fixtures.redundantPubKey.signature)
     })
   })
 })
